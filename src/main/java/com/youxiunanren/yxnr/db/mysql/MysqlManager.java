@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
+import java.util.List;
 
 public class MysqlManager {
     private static Logger logger = LoggerFactory.getLogger(MysqlManager.class);
@@ -32,7 +33,11 @@ public class MysqlManager {
         return conn;
     }
 
-    public static <T> T get(Class<T> tClass, String id) {
+    public static <T> List<T> findAll(Class<T> tClass) {
+        return null;
+    }
+
+    public static <T> T find(Class<T> tClass, String id) {
         if(tClass == null) return null;
         Field[] fields = tClass.getDeclaredFields();
         Method[] methods = tClass.getDeclaredMethods();
@@ -45,14 +50,18 @@ public class MysqlManager {
             }
         }
         if(idFieldName == null) return null;
-        Statement stmt = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
         Connection conn = obtainConnection();
         if(conn == null) return null;
 
         try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("select * from " + tableName + " where " + idFieldName + "=" + id);
+            stmt = conn.prepareStatement("select * from ? where ? = ?");
+            stmt.setString(1, tableName);
+            stmt.setString(2, idFieldName);
+            stmt.setString(3, id);
+
+            rs = stmt.executeQuery();
 
             if(rs.next()) {
                 try {
@@ -99,7 +108,7 @@ public class MysqlManager {
 
     public static void main(String[] args){
         MysqlManager.loadDriver();
-        Client client = MysqlManager.get(Client.class, "1");
+        Client client = MysqlManager.find(Client.class, "1");
         System.out.println(client.getClientId());
         System.out.println(client.getName());
     }
