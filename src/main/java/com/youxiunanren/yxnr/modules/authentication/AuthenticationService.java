@@ -5,6 +5,7 @@ import com.youxiunanren.yxnr.modules.authentication.models.AuthorizationCode;
 import com.youxiunanren.yxnr.modules.authentication.models.EGrantType;
 import com.youxiunanren.yxnr.modules.authentication.models.Token;
 import com.youxiunanren.yxnr.modules.authentication.models.TokenExchangeForm;
+import com.youxiunanren.yxnr.util.RandomUtil;
 
 import javax.inject.Named;
 
@@ -12,13 +13,18 @@ import javax.inject.Named;
 public class AuthenticationService {
 
 
-    public AuthorizationCode authorize(String responseType, String clientId, String redirectUri, String scope, String state) {
-        AuthorizationCode code = new AuthorizationCode();
+    public AuthorizationCode authorize(String clientId, String redirectUri, String scope, String state) {
+        AuthorizationCode ac = new AuthorizationCode();
 
         // TODO generate code and store it, which will be used by exchanging token
-        code.setState(state);
+        String code = RandomUtil.unique();
 
-        return code;
+        ac.setClientId(clientId);
+        ac.setRedirectUri(redirectUri);
+        ac.setScope(scope);
+        ac.setCode(code);
+        ac.setState(state);
+        return ac;
     }
 
     private Token exchangeTokenWithAuthorizationCode(String code, String redirectUri, String clientId, String clientSecret){
@@ -60,10 +66,36 @@ public class AuthenticationService {
     }
 
     public ValidationResult validateForTokenGeneration(TokenExchangeForm form){
+        EGrantType grantType = null;
+        if(form.getGrantType() == null || (grantType = EGrantType.valueOf(form.getGrantType())) == null) {
+            return ValidationResult.badRequest("Grant type is required").build();
+        }
+
+        if(EGrantType.AuthorizationCode.equals(grantType)) {
+            if(form.getClientId() == null || form.getCode() == null || form.getRedirectUri() == null) {
+                return ValidationResult.badRequest("Client ID, authorization code and redirect URI are required.").build();
+            }
+        }
+
+        if(EGrantType.ClientCredentials.equals(grantType)) {
+            if(form.getClientId() == null || form.getClientSecret() == null) {
+                return ValidationResult.badRequest("Client ID and client secret are required.").build();
+            }
+        }
+
+        if(EGrantType.Password.equals(grantType)){
+            if(form.getUsername() == null || form.getPassword() == null || form.getClientSecret() == null) {
+                return ValidationResult.badRequest("Client ID, user name and password are required.").build();
+            }
+        }
+
         return ValidationResult.ok().build();
     }
 
-    public ValidationResult validateForCodeGeneration(String responseType, String clientId, String redirectUri, String scope, String state){
+    public ValidationResult validateForCodeGeneration(String clientId, String redirectUri, String scope, String state){
+        if(clientId == null || redirectUri == null || state == null) {
+            return ValidationResult.badRequest("Client ID, redirect URI and state are required.").build();
+        }
         return ValidationResult.ok().build();
     }
 }

@@ -1,6 +1,6 @@
 package com.youxiunanren.yxnr.util;
 
-public class StringUtils {
+public class StringUtil {
 
     public static String fromCamelToUnderscore(final String camelStr){
         return camelStr.replaceAll(String.format("%s|%s|%s",

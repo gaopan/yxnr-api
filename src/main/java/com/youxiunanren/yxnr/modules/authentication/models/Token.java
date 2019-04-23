@@ -1,23 +1,38 @@
 package com.youxiunanren.yxnr.modules.authentication.models;
 
 import com.youxiunanren.yxnr.model.Entity;
+import com.youxiunanren.yxnr.model.annotation.DtoRequired;
+import com.youxiunanren.yxnr.model.annotation.PoRequired;
 
 import java.util.Date;
 
 public class Token extends Entity {
     /* DTO required, Used for data transfer to client*/
+    @PoRequired
+    @DtoRequired
     private String accessToken;
+    @PoRequired
+    @DtoRequired
     private String refreshToken;
+    @PoRequired
+    @DtoRequired
     private Long expiresIn;
+    @PoRequired
+    @DtoRequired
+    private String tokenType;
 
     //<editor-fold defaultstate="collapsed" desc="PO required in addition">
     /* PO required in addition, used for data persistent */
+    @PoRequired
     private String clientId;
-    private String tokenType;
+    @PoRequired
     private Date expireTime;
+    @PoRequired
     private String code;
     // Used for password grant
+    @PoRequired
     private String username;
+    @PoRequired
     private String password;
     //</editor-fold>
 
@@ -32,10 +47,11 @@ public class Token extends Entity {
      * @param refreshToken
      * @param expiresIn
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
+        this.tokenType = tokenType;
     }
 
     /**
@@ -49,15 +65,15 @@ public class Token extends Entity {
      * @param tokenType
      * @param expireTime
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String clientId, String username, String password, String tokenType, Date expireTime){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, String username, String password, Date expireTime){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
+        this.tokenType = tokenType;
 
         this.clientId = clientId;
         this.username = username;
         this.password = password;
-        this.tokenType = tokenType;
         this.expireTime = expireTime;
     }
 
@@ -71,13 +87,13 @@ public class Token extends Entity {
      * @param expireTime
      * @param code
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String clientId, String tokenType, Date expireTime, String code){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, Date expireTime, String code){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
+        this.tokenType = tokenType;
 
         this.clientId = clientId;
-        this.tokenType = tokenType;
         this.expireTime = expireTime;
         this.code = code;
     }
@@ -91,13 +107,13 @@ public class Token extends Entity {
      * @param tokenType
      * @param expireTime
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String clientId, String tokenType, Date expireTime){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, Date expireTime){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
+        this.tokenType = tokenType;
 
         this.clientId = clientId;
-        this.tokenType = tokenType;
         this.expireTime = expireTime;
     }
 

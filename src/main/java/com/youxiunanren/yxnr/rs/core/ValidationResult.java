@@ -41,8 +41,26 @@ public class ValidationResult {
         return code(ECode.OK);
     }
 
+    public static ValidationResultBuilder badRequest() {return code(ECode.BadRequest); }
+
     public static ValidationResultBuilder ok(String message){
         ValidationResultBuilder builder = ok();
+        builder.message(message);
+        return builder;
+    }
+
+    public static ValidationResultBuilder badRequest(String message) {
+        ValidationResultBuilder builder = badRequest();
+        builder.message(message);
+        return builder;
+    }
+
+    public static ValidationResultBuilder interalException(){
+        return code(ECode.InteralException);
+    }
+
+    public static ValidationResultBuilder interalException(String message){
+        ValidationResultBuilder builder = interalException();
         builder.message(message);
         return builder;
     }
@@ -74,12 +92,20 @@ public class ValidationResult {
     }
 
     public static enum ECode {
-        OK(200);
+        OK(200),
+        BadRequest(400),
+        InteralException(500);
 
+        // HTTP Status
         private final int code;
+
+        public int getValue(){
+            return code;
+        }
 
         ECode(int code) {
             this.code = code;
         }
+
     }
 }

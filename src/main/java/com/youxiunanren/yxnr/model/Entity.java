@@ -1,9 +1,7 @@
 package com.youxiunanren.yxnr.model;
 
-
 /**
- * Base model of business objects
+ * Base model of both data transfer and data persist
  */
-public class Entity {
-
+public class Entity implements DataTransferEntity, DataPersistEntity{
 }

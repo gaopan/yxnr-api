@@ -2,9 +2,11 @@ package com.youxiunanren.yxnr.modules.authentication.models;
 
 import com.youxiunanren.yxnr.model.Entity;
 import com.youxiunanren.yxnr.model.annotation.DtoRequired;
+import com.youxiunanren.yxnr.model.annotation.ID;
 import com.youxiunanren.yxnr.model.annotation.PoRequired;
 
 public class Client extends Entity {
+    private EClientType clientType;
     // <editor-fold  defaultstate="collapsed" desc="Fields for Application">
     @PoRequired
     @DtoRequired
@@ -27,6 +29,7 @@ public class Client extends Entity {
 
     @PoRequired
     @DtoRequired
+    @ID
     private String clientId;
     @PoRequired
     @DtoRequired
@@ -41,6 +44,7 @@ public class Client extends Entity {
         this.name = name;
         this.logo = logo;
         this.redirectUri = redirectUri;
+        this.clientType = EClientType.Application;
     }
 
     /**
@@ -49,6 +53,15 @@ public class Client extends Entity {
     public Client(String username, String password){
         this.username = username;
         this.password = password;
+        this.clientType = EClientType.User;
+    }
+
+    public EClientType getClientType() {
+        return clientType;
+    }
+
+    public void setClientType(EClientType clientType) {
+        this.clientType = clientType;
     }
 
     public String getName() {
