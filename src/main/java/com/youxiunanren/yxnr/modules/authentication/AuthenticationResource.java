@@ -66,7 +66,7 @@ public class AuthenticationResource {
                                   @QueryParam("sort") String sort,
                                   @QueryParam("sortBy") String sortBy,
                                   @QueryParam("filter") String filter){
-        return Response.ok(ResponseOptimizer.optimize(Client.class, clientService.getClients(EClientType.Application, new Pagination(pageSize, pageIndex, sort, sortBy, filter)))).build();
+        return Response.ok(ResponseOptimizer.optimize(Client.class, clientService.getClients(EClientType.Application, filter, new Pagination(pageSize, pageIndex, sort, sortBy)))).build();
     }
 
     @GET
@@ -93,12 +93,12 @@ public class AuthenticationResource {
 
     @PUT
     @Path("/client/user/{clientId}")
-    public Response updateUserClient(@PathParam("clientId") String clientId, @NotNull @Valid AppClientForm form){
-        ValidationResult vr = clientService.validateUpdateAppClient(clientId, form);
+    public Response updateUserClient(@PathParam("clientId") String clientId, @NotNull @Valid UserClientForm form){
+        ValidationResult vr = clientService.validateUpdateUserClient(clientId, form);
         if(!vr.isOK()) {
             return Response.status(vr.getCode().getValue()).entity(vr).build();
         }
-        return Response.ok(ResponseOptimizer.optimize(clientService.updateAppClient(clientId, form))).build();
+        return Response.ok(ResponseOptimizer.optimize(clientService.updateUserClient(clientId, form))).build();
     }
 
     @DELETE
@@ -118,7 +118,7 @@ public class AuthenticationResource {
                                    @QueryParam("sort") String sort,
                                    @QueryParam("sortBy") String sortBy,
                                    @QueryParam("filter") String filter){
-        return Response.ok(ResponseOptimizer.optimize(Client.class, clientService.getClients(EClientType.User, new Pagination(pageSize, pageIndex, sort, sortBy, filter)))).build();
+        return Response.ok(ResponseOptimizer.optimize(Client.class, clientService.getClients(EClientType.User, filter, new Pagination(pageSize, pageIndex, sort, sortBy)))).build();
     }
 
     @GET

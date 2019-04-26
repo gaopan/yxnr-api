@@ -6,6 +6,8 @@ import com.youxiunanren.yxnr.model.annotation.ID;
 import com.youxiunanren.yxnr.model.annotation.PoRequired;
 
 public class Client extends Entity {
+    @PoRequired
+    @DtoRequired
     private EClientType clientType;
     // <editor-fold  defaultstate="collapsed" desc="Fields for Application">
     @PoRequired

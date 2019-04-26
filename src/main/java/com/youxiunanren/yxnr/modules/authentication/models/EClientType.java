@@ -10,6 +10,16 @@ public enum EClientType {
         this.value = value;
     }
 
+    public static EClientType fromValue(String value){
+        if("app".equals(value)) {
+            return Application;
+        }
+        if("user".equals(value)) {
+            return User;
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return this.value;

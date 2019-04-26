@@ -5,16 +5,14 @@ public class Pagination {
     private int pageIndex;
     private String sort;
     private String sortBy;
-    private String filter;
 
     public Pagination(){}
 
-    public Pagination(int pageSize, int pageIndex, String sort, String sortBy, String filter){
+    public Pagination(int pageSize, int pageIndex, String sort, String sortBy){
         this.pageSize = pageSize;
         this.pageIndex = pageIndex;
         this.sort = sort;
         this.sortBy = sortBy;
-        this.filter = filter;
     }
 
     public int getPageSize() {
@@ -49,11 +47,17 @@ public class Pagination {
         this.sortBy = sortBy;
     }
 
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
+    public String toSql(){
+        String sql = "";
+        if(sort != null) {
+            sql += "order by " + sort;
+            if(sortBy != null) {
+                sql += " " + sortBy + " ";
+            }
+        }
+        if(pageIndex > 0 || pageSize > 0) {
+            sql += "limit " + pageIndex + "," + pageSize;
+        }
+        return sql;
     }
 }
