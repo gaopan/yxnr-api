@@ -30,9 +30,7 @@ public class Token extends Entity {
     @PoRequired
     private String code;
     // Used for password grant
-    @PoRequired
     private String username;
-    @PoRequired
     private String password;
     //</editor-fold>
 

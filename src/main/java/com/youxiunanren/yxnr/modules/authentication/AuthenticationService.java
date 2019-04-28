@@ -1,22 +1,35 @@
 package com.youxiunanren.yxnr.modules.authentication;
 
+import com.youxiunanren.yxnr.modules.authentication.models.*;
 import com.youxiunanren.yxnr.rs.core.ValidationResult;
-import com.youxiunanren.yxnr.modules.authentication.models.AuthorizationCode;
-import com.youxiunanren.yxnr.modules.authentication.models.EGrantType;
-import com.youxiunanren.yxnr.modules.authentication.models.Token;
-import com.youxiunanren.yxnr.modules.authentication.models.TokenExchangeForm;
 import com.youxiunanren.yxnr.util.RandomUtil;
+import org.apache.commons.lang3.time.DateUtils;
 
+import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.Date;
 
 @Named
 public class AuthenticationService {
 
+    public static final int EXPIRES_IN = 24 * 60 * 60;
+
+    public static final int REFRESH_EXPIRES_IN = 30 * 24 * 60 * 60;
+
+    public static final String TOKEN_TYPE = "Bearer";
+
+    @Inject
+    ClientRepository clientRepo;
+
+    @Inject
+    CodeRepository codeRepo;
+
+    @Inject
+    TokenRepository tokenRepo;
 
     public AuthorizationCode authorize(String clientId, String redirectUri, String scope, String state) {
         AuthorizationCode ac = new AuthorizationCode();
 
-        // TODO generate code and store it, which will be used by exchanging token
         String code = RandomUtil.unique();
 
         ac.setClientId(clientId);
@@ -24,27 +37,51 @@ public class AuthenticationService {
         ac.setScope(scope);
         ac.setCode(code);
         ac.setState(state);
+
+        boolean succeed = codeRepo.create(ac);
+        if(!succeed) return null;
         return ac;
     }
 
     private Token exchangeTokenWithAuthorizationCode(String code, String redirectUri, String clientId, String clientSecret){
         Token token = new Token();
 
-        // TODO generate token and store it
+        token.setAccessToken(RandomUtil.unique());
+        token.setClientId(clientId);
+        token.setCode(code);
+        token.setExpiresIn((long) EXPIRES_IN);
+        token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
+        token.setRefreshToken(RandomUtil.unique());
+        token.setTokenType(TOKEN_TYPE);
 
-
+        boolean succeed = tokenRepo.create(token);
+        if(!succeed) return null;
         return token;
     }
 
     private Token exchangeTokenWithUserCredentials(String username, String password, String clientId){
         Token token = new Token();
 
+        token.setTokenType(TOKEN_TYPE);
+        token.setRefreshToken(RandomUtil.unique());
+        token.setAccessToken(RandomUtil.unique());
+        token.setExpiresIn((long) EXPIRES_IN);
+        token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
+        token.setClientId(clientId);
 
+        boolean succeed = tokenRepo.create(token);
+        if(!succeed) return null;
         return token;
     }
 
     private Token exchangeTokenWithClientCredentials(String clientId, String clientSecret){
         Token token = new Token();
+
+        token.setClientId(clientId);
+        token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
+        token.setExpiresIn((long) EXPIRES_IN);
+        token.setAccessToken(RandomUtil.unique());
+        token.setRefreshToken(RandomUtil.unique());
 
         return token;
     }
@@ -96,6 +133,15 @@ public class AuthenticationService {
         if(clientId == null || redirectUri == null || state == null) {
             return ValidationResult.badRequest("Client ID, redirect URI and state are required.").build();
         }
+        Client client = clientRepo.find(clientId);
+        if(client == null) {
+            return ValidationResult.notFound("Client not found.").build();
+        }
+
+        if(!redirectUri.equals(client.getRedirectUri())) {
+            return ValidationResult.badRequest("Redirect URI not matched.").build();
+        }
+
         return ValidationResult.ok().build();
     }
 }

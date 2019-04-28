@@ -55,6 +55,16 @@ public class ValidationResult {
         return builder;
     }
 
+    public static ValidationResultBuilder notFound() {
+        return code(ECode.NotFound);
+    }
+
+    public static ValidationResultBuilder notFound(String message) {
+        ValidationResultBuilder builder = notFound();
+        builder.message(message);
+        return builder;
+    }
+
     public static ValidationResultBuilder interalException(){
         return code(ECode.InteralException);
     }
@@ -94,7 +104,8 @@ public class ValidationResult {
     public static enum ECode {
         OK(200),
         BadRequest(400),
-        InteralException(500);
+        InteralException(500),
+        NotFound(404);
 
         // HTTP Status
         private final int code;

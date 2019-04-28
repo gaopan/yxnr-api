@@ -2,9 +2,11 @@ package com.youxiunanren.yxnr.modules.authentication.models;
 
 import com.youxiunanren.yxnr.model.Entity;
 import com.youxiunanren.yxnr.model.annotation.DtoRequired;
+import com.youxiunanren.yxnr.model.annotation.ID;
 import com.youxiunanren.yxnr.model.annotation.PoRequired;
 
 public class AuthorizationCode extends Entity {
+    @ID
     @PoRequired
     @DtoRequired
     private String code;
