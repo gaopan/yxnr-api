@@ -30,6 +30,7 @@ public class Token extends Entity {
     @PoRequired
     private String code;
     // Used for password grant
+    @PoRequired
     private String username;
     private String password;
     //</editor-fold>
@@ -128,7 +129,7 @@ public class Token extends Entity {
     }
 
     public void setTokenType(String tokenType) {
-        tokenType = tokenType;
+        this.tokenType = tokenType;
     }
 
     public Date getExpireTime() {
@@ -194,4 +195,5 @@ public class Token extends Entity {
     public void setPassword(String password) {
         this.password = password;
     }
+
 }

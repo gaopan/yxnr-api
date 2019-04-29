@@ -155,7 +155,7 @@ public class AuthenticationResource {
             return Response.status(vr.getCode().getValue()).entity(vr).build();
         }
 
-        return Response.ok(authService.token(form)).build();
+        return Response.ok(ResponseOptimizer.optimize(authService.token(form))).build();
     }
 
 

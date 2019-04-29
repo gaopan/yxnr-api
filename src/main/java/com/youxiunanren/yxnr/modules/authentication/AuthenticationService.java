@@ -43,7 +43,7 @@ public class AuthenticationService {
         return ac;
     }
 
-    private Token exchangeTokenWithAuthorizationCode(String code, String redirectUri, String clientId, String clientSecret){
+    private Token exchangeTokenWithAuthorizationCode(String code, String clientId){
         Token token = new Token();
 
         token.setAccessToken(RandomUtil.unique());
@@ -59,7 +59,7 @@ public class AuthenticationService {
         return token;
     }
 
-    private Token exchangeTokenWithUserCredentials(String username, String password, String clientId){
+    private Token exchangeTokenWithUserCredentials(String username, String clientId){
         Token token = new Token();
 
         token.setTokenType(TOKEN_TYPE);
@@ -68,13 +68,14 @@ public class AuthenticationService {
         token.setExpiresIn((long) EXPIRES_IN);
         token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
         token.setClientId(clientId);
+        token.setUsername(username);
 
         boolean succeed = tokenRepo.create(token);
         if(!succeed) return null;
         return token;
     }
 
-    private Token exchangeTokenWithClientCredentials(String clientId, String clientSecret){
+    private Token exchangeTokenWithClientCredentials(String clientId){
         Token token = new Token();
 
         token.setClientId(clientId);
@@ -82,6 +83,7 @@ public class AuthenticationService {
         token.setExpiresIn((long) EXPIRES_IN);
         token.setAccessToken(RandomUtil.unique());
         token.setRefreshToken(RandomUtil.unique());
+        token.setTokenType(TOKEN_TYPE);
 
         return token;
     }
@@ -92,11 +94,11 @@ public class AuthenticationService {
         EGrantType grantType = EGrantType.valueOf(form.getGrantType());
 
         if(EGrantType.AuthorizationCode.equals(grantType)) {
-            return this.exchangeTokenWithAuthorizationCode(form.getCode(), form.getRedirectUri(), form.getClientId(), form.getClientSecret());
+            return this.exchangeTokenWithAuthorizationCode(form.getCode(), form.getClientId());
         } else if(EGrantType.ClientCredentials.equals(grantType)){
-            return this.exchangeTokenWithClientCredentials(form.getClientId(), form.getClientSecret());
+            return this.exchangeTokenWithClientCredentials(form.getClientId());
         } else if(EGrantType.Password.equals(grantType)) {
-            return this.exchangeTokenWithUserCredentials(form.getUsername(), form.getPassword(), form.getClientId());
+            return this.exchangeTokenWithUserCredentials(form.getUsername(), form.getClientId());
         }
 
         return null;
@@ -112,17 +114,42 @@ public class AuthenticationService {
             if(form.getClientId() == null || form.getCode() == null || form.getRedirectUri() == null) {
                 return ValidationResult.badRequest("Client ID, authorization code and redirect URI are required.").build();
             }
+            AuthorizationCode code = codeRepo.find(form.getCode());
+            if(code == null) {
+                return ValidationResult.badRequest("Code not valid").build();
+            }
+            Client client = clientRepo.find(form.getClientId());
+            if(client == null) {
+                return ValidationResult.badRequest("Client not existed").build();
+            }
+            if(!form.getRedirectUri().equals(client.getRedirectUri())){
+                return ValidationResult.badRequest("Redirect URI not matched").build();
+            }
         }
 
         if(EGrantType.ClientCredentials.equals(grantType)) {
             if(form.getClientId() == null || form.getClientSecret() == null) {
                 return ValidationResult.badRequest("Client ID and client secret are required.").build();
             }
+            Client client = clientRepo.find(form.getClientId());
+            if(client == null) {
+                return ValidationResult.badRequest("Client not exist").build();
+            }
+            if(!form.getClientSecret().equals(client.getClientSecret())) {
+                return ValidationResult.badRequest("Client not valid").build();
+            }
         }
 
         if(EGrantType.Password.equals(grantType)){
-            if(form.getUsername() == null || form.getPassword() == null || form.getClientSecret() == null) {
+            if(form.getUsername() == null || form.getPassword() == null || form.getClientId() == null) {
                 return ValidationResult.badRequest("Client ID, user name and password are required.").build();
+            }
+            Client client = clientRepo.find(form.getClientId());
+            if(client == null) {
+                return ValidationResult.badRequest("Client not exist").build();
+            }
+            if(!form.getUsername().equals(client.getUsername()) || !form.getPassword().equals(client.getPassword())) {
+                return ValidationResult.badRequest("Username or password is not correct").build();
             }
         }
 

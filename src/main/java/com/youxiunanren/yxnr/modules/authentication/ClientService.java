@@ -7,6 +7,7 @@ import com.youxiunanren.yxnr.modules.authentication.models.Client;
 import com.youxiunanren.yxnr.modules.authentication.models.EClientType;
 import com.youxiunanren.yxnr.modules.authentication.models.UserClientForm;
 import com.youxiunanren.yxnr.rs.core.ValidationResult;
+import com.youxiunanren.yxnr.util.RandomUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,6 +27,10 @@ public class ClientService {
         if(form.getRedirectUri() == null) {
             return ValidationResult.badRequest("Redirect URI is required").build();
         }
+        List<Client> clients = clientRepo.findAll(Filter.eq("name", form.getName()));
+        if(clients.size() > 0) {
+            return ValidationResult.badRequest("Duplicated name").build();
+        }
         return ValidationResult.ok().build();
     }
 
@@ -35,6 +40,14 @@ public class ClientService {
         }
         if(form.getRedirectUri() == null) {
             return ValidationResult.badRequest("Redirect URI is required").build();
+        }
+        Client client = clientRepo.find(clientId);
+        if(client == null) {
+            return ValidationResult.badRequest("Client not exist").build();
+        }
+        List<Client> clients = clientRepo.findAll(Filter.eq("name", form.getName()));
+        if(clients.size() > 1) {
+            return ValidationResult.badRequest("Duplicated name").build();
         }
         return ValidationResult.ok().build();
     }
@@ -46,6 +59,10 @@ public class ClientService {
         if(form.getPassword() == null) {
             return ValidationResult.badRequest("Password is required.").build();
         }
+        List<Client> clients = clientRepo.findAll(Filter.eq("username", form.getUsername()));
+        if(clients.size() > 0) {
+            return ValidationResult.badRequest("Duplicated username").build();
+        }
         return ValidationResult.ok().build();
     }
 
@@ -56,10 +73,19 @@ public class ClientService {
         if(form.getPassword() == null) {
             return ValidationResult.badRequest("Password is required.").build();
         }
+        Client client = clientRepo.find(clientId);
+        if(client == null) {
+            return ValidationResult.badRequest("Client not exist").build();
+        }
+        List<Client> clients = clientRepo.findAll(Filter.eq("username", form.getUsername()));
+        if(clients.size() > 1) {
+            return ValidationResult.badRequest("Duplicated username").build();
+        }
         return ValidationResult.ok().build();
     }
 
     private boolean createClient(Client client){
+        client.setClientId(RandomUtil.unique());
         return clientRepo.create(client);
     }
 

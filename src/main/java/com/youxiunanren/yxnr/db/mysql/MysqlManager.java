@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,8 @@ public class MysqlManager implements SqlDataSource {
                                 values.add(null);
                             } else if(value instanceof Number){
                                 values.add(value.toString());
+                            } else if(value instanceof Date || value instanceof java.util.Date){
+                                values.add("'" + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(value) + "'");
                             } else {
                                 values.add("'" + value.toString() + "'");
                             }
@@ -152,6 +155,8 @@ public class MysqlManager implements SqlDataSource {
                                 assignList.add(field.getName() + "=" + null);
                             } else if(value instanceof Number){
                                 assignList.add(field.getName() + "=" + value.toString());
+                            } else if(value instanceof Date){
+                                assignList.add(field.getName() + "=" + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(value));
                             } else {
                                 assignList.add(field.getName() + "='" + value.toString() + "'");
                             }
@@ -213,7 +218,7 @@ public class MysqlManager implements SqlDataSource {
     public <T> boolean executeUpdate(Class<T> tClass, String sql){
         boolean succeed = false;
         if(tClass == null || sql == null) return succeed;
-        logger.debug("Execute update: " + sql);
+        logger.info("Execute update: " + sql);
         PreparedStatement stmt = null;
         Connection conn = obtainConnection();
 
@@ -233,7 +238,7 @@ public class MysqlManager implements SqlDataSource {
 
     public <T> long executeQueryForCount(Class<T> tClass, String countFieldName, String sql){
         if(tClass == null || sql == null) return 0;
-        logger.debug("Execute query for count: " + sql);
+        logger.info("Execute query for count: " + sql);
         PreparedStatement stmt = null;
         ResultSet rs = null;
         Connection conn = obtainConnection();
@@ -308,7 +313,7 @@ public class MysqlManager implements SqlDataSource {
 
     public <T> List<T> executeQuery(Class<T> tClass, String sql) {
         if(tClass == null || sql == null) return null;
-        logger.debug("Execute query: " + sql);
+        logger.info("Execute query: " + sql);
         PreparedStatement stmt = null;
         ResultSet rs = null;
         Connection conn = obtainConnection();
@@ -348,7 +353,7 @@ public class MysqlManager implements SqlDataSource {
         }
         if(idFieldName == null) return null;
 
-        List<T> result = executeQuery(tClass, "select * from " + tableName + " where " + idFieldName + "=" + id);
+        List<T> result = executeQuery(tClass, "select * from " + tableName + " where " + idFieldName + "='" + id + "'");
 
         if(result == null || result.size() == 0) {
             return null;

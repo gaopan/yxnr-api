@@ -3,6 +3,9 @@ package com.youxiunanren.yxnr.db.core.filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Filter {
 
     private static Logger logger = LoggerFactory.getLogger(Filter.class);
@@ -54,6 +57,8 @@ public class Filter {
             Object value = cp.getValue();
             if(value instanceof String) {
                 sql += "'" + value + "'";
+            } else if(value instanceof Date){
+                sql += new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(value);
             } else {
                 sql += value;
             }
