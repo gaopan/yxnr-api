@@ -7,7 +7,7 @@ import com.youxiunanren.yxnr.model.Pagination;
 import java.util.List;
 import java.util.Map;
 
-public interface DataSource {
+public interface DataAccessObject {
 
     public <T> List<T> findAll(Class<T> tClass, ComparablePair cp);
 

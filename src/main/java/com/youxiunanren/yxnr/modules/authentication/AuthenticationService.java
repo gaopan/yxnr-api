@@ -1,5 +1,7 @@
 package com.youxiunanren.yxnr.modules.authentication;
 
+import com.youxiunanren.yxnr.db.core.filter.Filter;
+import com.youxiunanren.yxnr.model.DataTransferEntity;
 import com.youxiunanren.yxnr.modules.authentication.models.*;
 import com.youxiunanren.yxnr.rs.core.ValidationResult;
 import com.youxiunanren.yxnr.util.RandomUtil;
@@ -8,6 +10,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Date;
+import java.util.List;
 
 @Named
 public class AuthenticationService {
@@ -27,10 +30,14 @@ public class AuthenticationService {
     @Inject
     TokenRepository tokenRepo;
 
+    public String generateUnique(){
+        return RandomUtil.unique();
+    }
+
     public AuthorizationCode authorize(String clientId, String redirectUri, String scope, String state) {
         AuthorizationCode ac = new AuthorizationCode();
 
-        String code = RandomUtil.unique();
+        String code = generateUnique();
 
         ac.setClientId(clientId);
         ac.setRedirectUri(redirectUri);
@@ -43,15 +50,17 @@ public class AuthenticationService {
         return ac;
     }
 
-    private Token exchangeTokenWithAuthorizationCode(String code, String clientId){
+    private Token exchangeTokenWithAuthorizationCode(String code, String clientId, String scope){
         Token token = new Token();
 
-        token.setAccessToken(RandomUtil.unique());
+        token.setId(tokenRepo.generateId());
+        token.setAccessToken(generateUnique());
         token.setClientId(clientId);
         token.setCode(code);
+        token.setScope(scope);
         token.setExpiresIn((long) EXPIRES_IN);
         token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
-        token.setRefreshToken(RandomUtil.unique());
+        token.setRefreshToken(generateUnique());
         token.setTokenType(TOKEN_TYPE);
 
         boolean succeed = tokenRepo.create(token);
@@ -59,12 +68,14 @@ public class AuthenticationService {
         return token;
     }
 
-    private Token exchangeTokenWithUserCredentials(String username, String clientId){
+    private Token exchangeTokenWithUserCredentials(String username, String clientId, String scope){
         Token token = new Token();
 
+        token.setId(tokenRepo.generateId());
         token.setTokenType(TOKEN_TYPE);
-        token.setRefreshToken(RandomUtil.unique());
-        token.setAccessToken(RandomUtil.unique());
+        token.setRefreshToken(generateUnique());
+        token.setAccessToken(generateUnique());
+        token.setScope(scope);
         token.setExpiresIn((long) EXPIRES_IN);
         token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
         token.setClientId(clientId);
@@ -75,14 +86,16 @@ public class AuthenticationService {
         return token;
     }
 
-    private Token exchangeTokenWithClientCredentials(String clientId){
+    private Token exchangeTokenWithClientCredentials(String clientId, String scope){
         Token token = new Token();
 
+        token.setId(tokenRepo.generateId());
         token.setClientId(clientId);
         token.setExpireTime(DateUtils.addSeconds(new Date(), EXPIRES_IN));
         token.setExpiresIn((long) EXPIRES_IN);
-        token.setAccessToken(RandomUtil.unique());
-        token.setRefreshToken(RandomUtil.unique());
+        token.setScope(scope);
+        token.setAccessToken(generateUnique());
+        token.setRefreshToken(generateUnique());
         token.setTokenType(TOKEN_TYPE);
 
         return token;
@@ -94,11 +107,11 @@ public class AuthenticationService {
         EGrantType grantType = EGrantType.valueOf(form.getGrantType());
 
         if(EGrantType.AuthorizationCode.equals(grantType)) {
-            return this.exchangeTokenWithAuthorizationCode(form.getCode(), form.getClientId());
+            return this.exchangeTokenWithAuthorizationCode(form.getCode(), form.getClientId(), form.getScope());
         } else if(EGrantType.ClientCredentials.equals(grantType)){
-            return this.exchangeTokenWithClientCredentials(form.getClientId());
+            return this.exchangeTokenWithClientCredentials(form.getClientId(), form.getScope());
         } else if(EGrantType.Password.equals(grantType)) {
-            return this.exchangeTokenWithUserCredentials(form.getUsername(), form.getClientId());
+            return this.exchangeTokenWithUserCredentials(form.getUsername(), form.getClientId(), form.getScope());
         }
 
         return null;
@@ -125,6 +138,7 @@ public class AuthenticationService {
             if(!form.getRedirectUri().equals(client.getRedirectUri())){
                 return ValidationResult.badRequest("Redirect URI not matched").build();
             }
+            form.setScope(code.getScope());
         }
 
         if(EGrantType.ClientCredentials.equals(grantType)) {

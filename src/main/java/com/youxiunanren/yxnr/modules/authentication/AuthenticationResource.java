@@ -1,13 +1,11 @@
 package com.youxiunanren.yxnr.modules.authentication;
 
+import com.youxiunanren.yxnr.db.core.filter.Filter;
 import com.youxiunanren.yxnr.model.Pagination;
-import com.youxiunanren.yxnr.modules.authentication.models.AppClientForm;
-import com.youxiunanren.yxnr.modules.authentication.models.EClientType;
-import com.youxiunanren.yxnr.modules.authentication.models.TokenExchangeForm;
-import com.youxiunanren.yxnr.modules.authentication.models.UserClientForm;
-import com.youxiunanren.yxnr.modules.authentication.models.Client;
+import com.youxiunanren.yxnr.modules.authentication.models.*;
 import com.youxiunanren.yxnr.rs.core.ResponseOptimizer;
 import com.youxiunanren.yxnr.rs.core.ValidationResult;
+import com.youxiunanren.yxnr.util.RandomUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +14,9 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Named
 @Path("/auth")
@@ -28,6 +29,9 @@ public class AuthenticationResource {
 
     @Inject
     ClientService clientService;
+
+    @Inject
+    TokenRepository tokenRepo;
 
     @POST
     @Path("/client/app")
@@ -158,5 +162,29 @@ public class AuthenticationResource {
         return Response.ok(ResponseOptimizer.optimize(authService.token(form))).build();
     }
 
+    @POST
+    @Path("/refreshtoken")
+    public Response refreshToken(@NotNull @QueryParam("accessToken") String accessToken, @NotNull @QueryParam("refreshToken") String refreshToken){
+        List<Token> tokens = tokenRepo.findAll(Filter.and(Filter.eq("accessToken", accessToken), Filter.eq("refreshToken", refreshToken)));
+        if(tokens.size() < 1) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Token not exists").build();
+        }
+        Token token = tokens.get(0);
+        boolean succeed = tokenRepo.update(token.getId(), Map.of("expireTime", new Date(token.getExpireTime().getTime() + AuthenticationService.EXPIRES_IN), "accessToken", authService.generateUnique()));
+        if(!succeed) {
+            return Response.serverError().build();
+        }
+        return Response.ok(ResponseOptimizer.optimize(tokenRepo.find(token.getId()))).build();
+    }
+
+    @GET
+    @Path("/tokeninfo")
+    public Response token(@NotNull @QueryParam("accessToken") String accessToken){
+        List<Token> tokens = tokenRepo.findAll(Filter.eq("accessToken", accessToken));
+        if(tokens.size() < 1) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Token not exists").build();
+        }
+        return Response.ok(ResponseOptimizer.optimize(tokens.get(0))).build();
+    }
 
 }

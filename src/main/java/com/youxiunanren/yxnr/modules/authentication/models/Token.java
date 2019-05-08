@@ -2,11 +2,16 @@ package com.youxiunanren.yxnr.modules.authentication.models;
 
 import com.youxiunanren.yxnr.model.Entity;
 import com.youxiunanren.yxnr.model.annotation.DtoRequired;
+import com.youxiunanren.yxnr.model.annotation.ID;
 import com.youxiunanren.yxnr.model.annotation.PoRequired;
 
 import java.util.Date;
 
 public class Token extends Entity {
+    @ID
+    @PoRequired
+    @DtoRequired
+    private String id;
     /* DTO required, Used for data transfer to client*/
     @PoRequired
     @DtoRequired
@@ -20,6 +25,9 @@ public class Token extends Entity {
     @PoRequired
     @DtoRequired
     private String tokenType;
+    @PoRequired
+    @DtoRequired
+    private String scope;
 
     //<editor-fold defaultstate="collapsed" desc="PO required in addition">
     /* PO required in addition, used for data persistent */
@@ -46,11 +54,12 @@ public class Token extends Entity {
      * @param refreshToken
      * @param expiresIn
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String scope){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
         this.tokenType = tokenType;
+        this.scope = scope;
     }
 
     /**
@@ -64,11 +73,12 @@ public class Token extends Entity {
      * @param tokenType
      * @param expireTime
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, String username, String password, Date expireTime){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String scope, String clientId, String username, String password, Date expireTime){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
         this.tokenType = tokenType;
+        this.scope = scope;
 
         this.clientId = clientId;
         this.username = username;
@@ -86,11 +96,12 @@ public class Token extends Entity {
      * @param expireTime
      * @param code
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, Date expireTime, String code){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String scope, String clientId, Date expireTime, String code){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
         this.tokenType = tokenType;
+        this.scope = scope;
 
         this.clientId = clientId;
         this.expireTime = expireTime;
@@ -106,11 +117,12 @@ public class Token extends Entity {
      * @param tokenType
      * @param expireTime
      */
-    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String clientId, Date expireTime){
+    public Token(String accessToken, String refreshToken, Long expiresIn, String tokenType, String scope, String clientId, Date expireTime){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
         this.tokenType = tokenType;
+        this.scope = scope;
 
         this.clientId = clientId;
         this.expireTime = expireTime;
@@ -196,4 +208,19 @@ public class Token extends Entity {
         this.password = password;
     }
 
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

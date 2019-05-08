@@ -1,6 +1,6 @@
 package com.youxiunanren.yxnr.db.mysql;
 
-import com.youxiunanren.yxnr.db.SqlDataSource;
+import com.youxiunanren.yxnr.db.SqlDataAccessObject;
 import com.youxiunanren.yxnr.db.core.filter.ComparablePair;
 import com.youxiunanren.yxnr.db.core.filter.Filter;
 import com.youxiunanren.yxnr.db.core.filter.RelatablePair;
@@ -8,9 +8,15 @@ import com.youxiunanren.yxnr.model.Pagination;
 import com.youxiunanren.yxnr.model.annotation.ID;
 import com.youxiunanren.yxnr.model.annotation.PoRequired;
 import com.youxiunanren.yxnr.modules.authentication.models.Client;
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,10 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MysqlManager implements SqlDataSource {
+@Named
+public class MysqlManager implements SqlDataAccessObject {
     private static Logger logger = LoggerFactory.getLogger(MysqlManager.class);
 
-    public static void loadDriver(){
+    @Inject
+    MysqlProperties mysqlProperties;
+
+    private HikariDataSource ds;
+
+    private void loadDriver(){
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -32,10 +44,30 @@ public class MysqlManager implements SqlDataSource {
         }
     }
 
+    private void initHikariDataSource(){
+        ds = new HikariDataSource();
+        logger.info(mysqlProperties.getJdbcUrl());
+        ds.setJdbcUrl(mysqlProperties.getJdbcUrl());
+        logger.info(mysqlProperties.getUsername());
+        ds.setUsername(mysqlProperties.getUsername());
+        ds.setPassword(mysqlProperties.getPassword());
+        ds.setMaximumPoolSize(20);
+        ds.setMinimumIdle(10);
+    }
+
+    @PostConstruct
+    public void init(){
+        StopWatch stopWatch = StopWatch.createStarted();
+        loadDriver();
+        initHikariDataSource();
+        logger.info("Initialized Mysql data source.");
+        stopWatch.stop();
+    }
+
     private Connection obtainConnection(){
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/yxnr_auth?user=root&password=rat.aid.two-666&useSSL=false");
+            conn = ds.getConnection();
         } catch (SQLException e) {
             logger.error("Failed to obtain mysql connection", e);
         }
@@ -363,27 +395,4 @@ public class MysqlManager implements SqlDataSource {
 
     }
 
-    public static void main(String[] args){
-        MysqlManager.loadDriver();
-        MysqlManager mysqlManager = new MysqlManager();
-        Client client = mysqlManager.find(Client.class, "1");
-        System.out.println(client.getClientId());
-        System.out.println(client.getName());
-
-        mysqlManager.update(Client.class, "1", Map.of("name", "abc1"));
-
-        client = mysqlManager.find(Client.class, "1");
-        System.out.println(client.getClientId());
-        System.out.println(client.getName());
-
-        client = mysqlManager.findAll(Client.class, Filter.eq("clientId", "1")).get(0);
-        System.out.println(client.getClientId());
-        System.out.println(client.getName());
-
-        client = mysqlManager.findAll(Client.class, Filter.and(Filter.eq("clientId", "1"), Filter.eq("name", "abc1"))).get(0);
-        System.out.println(client.getClientId());
-        System.out.println(client.getName());
-
-        System.out.println(mysqlManager.executeQueryForCount(Client.class, "count", "select count(*) as count from client"));
-    }
 }

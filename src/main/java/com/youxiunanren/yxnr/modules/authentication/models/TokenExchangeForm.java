@@ -12,6 +12,7 @@ public class TokenExchangeForm {
     private String clientSecret;
     private String password;
     private String username;
+    private String scope;
 
     public String getGrantType() {
         return grantType;
@@ -67,5 +68,13 @@ public class TokenExchangeForm {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }
